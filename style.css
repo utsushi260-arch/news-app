@@ -1,0 +1,159 @@
+:root {
+  --bg: #f4f6f5;
+  --card-bg: #ffffff;
+  --primary: #2f5d50;
+  --primary-dark: #234439;
+  --accent: #c9803a;
+  --text: #22302c;
+  --muted: #6b7a75;
+  --border: #e1e6e3;
+  --danger: #b3462c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 0 40px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--primary);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar h1 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.today-badge {
+  font-size: 0.85rem;
+}
+
+.page-note {
+  margin: 12px 16px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 16px 16px;
+}
+
+.card h2 {
+  font-size: 1rem;
+  margin: 0 0 10px;
+  color: var(--primary-dark);
+}
+
+.news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.news-item {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.news-item a {
+  color: var(--primary-dark);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.news-item a:hover {
+  text-decoration: underline;
+}
+
+.news-item .news-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.news-item .news-desc {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.news-item .btn-ask-ai {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: white;
+  color: var(--primary);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.news-item .btn-ask-ai:active {
+  background: var(--primary);
+  color: white;
+}
+
+.fetched-at {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: -4px 0 10px;
+}
+
+.empty-text {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.hint-toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  max-width: 448px;
+  margin: 0 auto;
+  background: var(--primary-dark);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+}

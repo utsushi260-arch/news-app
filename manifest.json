@@ -1,0 +1,9 @@
+{
+  "name": "私専用ニュース",
+  "short_name": "私専用ニュース",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f5",
+  "theme_color": "#2f5d50",
+  "icons": []
+}

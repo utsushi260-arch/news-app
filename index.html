@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>私専用ニュース</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="私専用ニュース" />
+<meta name="theme-color" content="#2f5d50" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <h1>🗞️ 私専用ニュース</h1>
+    <div class="today-badge">
+      <span id="today-date"></span>
+    </div>
+  </header>
+
+  <p class="page-note">毎朝7:00に自動更新。信頼できる主要メディアの記事のみを表示しています。気になる記事は「AIに聞く」から詳しく質問できます。</p>
+
+  <section id="news-sections">
+
+    <div class="card" data-category="ma">
+      <h2>M&amp;A</h2>
+      <p class="fetched-at" id="fetched-at-ma"></p>
+      <ul id="news-ma" class="news-list"></ul>
+    </div>
+
+    <div class="card" data-category="keiei">
+      <h2>経営企画</h2>
+      <p class="fetched-at" id="fetched-at-keiei"></p>
+      <ul id="news-keiei" class="news-list"></ul>
+    </div>
+
+    <div class="card" data-category="ai">
+      <h2>AI</h2>
+      <p class="fetched-at" id="fetched-at-ai"></p>
+      <ul id="news-ai" class="news-list"></ul>
+    </div>
+
+    <div class="card" data-category="kyodo">
+      <h2>経堂・世田谷区</h2>
+      <p class="fetched-at" id="fetched-at-kyodo"></p>
+      <ul id="news-kyodo" class="news-list"></ul>
+    </div>
+
+    <div class="card" data-category="gunma">
+      <h2>群馬県</h2>
+      <p class="fetched-at" id="fetched-at-gunma"></p>
+      <ul id="news-gunma" class="news-list"></ul>
+    </div>
+
+    <div class="card" data-category="kyoyo">
+      <h2>一般教養</h2>
+      <p class="fetched-at" id="fetched-at-kyoyo"></p>
+      <ul id="news-kyoyo" class="news-list"></ul>
+    </div>
+
+  </section>
+
+  <p id="ai-copied-msg" class="hint-toast hidden">質問文をコピーしました。開いたAIのページに貼り付けて(Ctrl+V)ご質問ください。</p>
+
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
