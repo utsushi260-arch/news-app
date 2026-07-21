@@ -78,40 +78,94 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .news-item {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
+  background: #fafbfa;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
 }
 
-.news-item a {
+.news-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.news-title {
   color: var(--primary-dark);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
   text-decoration: none;
 }
 
-.news-item a:hover {
+.news-title:hover {
   text-decoration: underline;
 }
 
-.news-item .news-meta {
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-top: 2px;
+.news-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.news-item .news-desc {
+.source-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.news-date {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.news-desc {
   font-size: 0.8rem;
   color: var(--text);
-  margin-top: 6px;
-  line-height: 1.4;
+  margin-top: 8px;
+  line-height: 1.5;
 }
 
-.news-item .btn-ask-ai {
-  margin-top: 8px;
-  padding: 6px 10px;
+.ai-comment-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #fdf6ec;
+  border: 1px solid #eddcb8;
+  border-radius: 8px;
+}
+
+.ai-comment-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.ai-comment-text {
+  font-size: 0.8rem;
+  color: var(--text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.news-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.btn-ask-ai {
+  padding: 6px 12px;
   border: 1px solid var(--primary);
   border-radius: 999px;
   background: white;
@@ -120,7 +174,7 @@ body {
   cursor: pointer;
 }
 
-.news-item .btn-ask-ai:active {
+.btn-ask-ai:active {
   background: var(--primary);
   color: white;
 }

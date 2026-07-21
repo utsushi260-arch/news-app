@@ -1,8 +1,14 @@
 const { XMLParser } = require("fast-xml-parser");
+const Anthropic = require("@anthropic-ai/sdk");
 
 const PROJECT_ID = "news-utsushi";
 const RAW_FETCH_COUNT = 20; // 信頼できる出典で絞り込む前提で多めに取得する
 const MAX_ITEMS = 8; // 絞り込み後、表示する件数
+const AI_COMMENT_MODEL = "claude-haiku-4-5";
+const AI_COMMENT_MAX_TOKENS = 700;
+
+// ANTHROPIC_API_KEYが無い環境(ローカル試験時など)ではAIコメント生成をスキップする。
+const anthropicClient = process.env.ANTHROPIC_API_KEY ? new Anthropic() : null;
 
 // カテゴリごとのGoogle Newsの検索キーワード。日本語ニュースに絞る。
 const CATEGORIES = [
@@ -99,6 +105,41 @@ function stripHtml(html) {
     .trim();
 }
 
+const AI_COMMENT_SYSTEM_PROMPT = `あなたはビジネスセンスを鍛えたい読者向けに、ニュース記事の背景とビジネス的な意味を解説するアナリストです。
+与えられた記事について、日本語で300〜400文字程度の解説コメントを書いてください。必ず次の観点を含めてください。
+
+1. 誰が、何のために、この出来事を行った(または起きた)のか、という背景。
+2. これがビジネスにどうつながるか。一見ビジネスと関係なさそうな話題でも、必ずどこかにビジネス的な関わり(市場・競争・マネタイズ・産業構造など)があります。それがどこにあるかを具体的に指摘してください。
+
+本文のみを出力してください。見出し、箇条書き記号、前置き(「この記事は」等)は不要です。断定できない場合は推測であることが分かる書き方にしてください。`;
+
+async function generateAiComment(category, item) {
+  if (!anthropicClient) return "";
+  try {
+    const userContent = [
+      `カテゴリ: ${category.label}`,
+      `タイトル: ${item.title}`,
+      `出典: ${item.source}(${item.pubDate})`,
+      item.description ? `概要: ${item.description}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const response = await anthropicClient.messages.create({
+      model: AI_COMMENT_MODEL,
+      max_tokens: AI_COMMENT_MAX_TOKENS,
+      system: AI_COMMENT_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userContent }],
+    });
+
+    const textBlock = response.content.find((b) => b.type === "text");
+    return textBlock ? textBlock.text.trim() : "";
+  } catch (e) {
+    console.error(`[fetch-news] AIコメント生成失敗 (${category.id} / ${item.title}): ${e.message}`);
+    return "";
+  }
+}
+
 async function fetchCategoryItems(category) {
   const url = buildRssUrl(category.query);
   const res = await fetch(url, {
@@ -180,6 +221,10 @@ async function main() {
   for (const category of CATEGORIES) {
     try {
       const items = await fetchCategoryItems(category);
+      // AIコメントは1件ずつ順番に生成する(並列にすると同時レート制限に当たりやすいため)。
+      for (const item of items) {
+        item.aiComment = await generateAiComment(category, item);
+      }
       await writeCategoryToFirestore(category, items);
       console.log(`[fetch-news] ${category.id}: ${items.length}件を保存しました`);
     } catch (e) {

@@ -72,17 +72,32 @@ function renderNewsItem(item) {
   const li = document.createElement("li");
   li.className = "news-item";
 
+  const header = document.createElement("div");
+  header.className = "news-header";
+
   const a = document.createElement("a");
+  a.className = "news-title";
   a.href = item.link;
   a.target = "_blank";
   a.rel = "noopener noreferrer";
   a.textContent = item.title;
-  li.appendChild(a);
+  header.appendChild(a);
 
   const meta = document.createElement("div");
   meta.className = "news-meta";
-  meta.textContent = [item.source, item.pubDate].filter(Boolean).join(" ・ ");
-  li.appendChild(meta);
+  const sourceBadge = document.createElement("span");
+  sourceBadge.className = "source-badge";
+  sourceBadge.textContent = item.source || "出典不明";
+  meta.appendChild(sourceBadge);
+  if (item.pubDate) {
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "news-date";
+    dateSpan.textContent = item.pubDate;
+    meta.appendChild(dateSpan);
+  }
+  header.appendChild(meta);
+
+  li.appendChild(header);
 
   if (item.description) {
     const desc = document.createElement("div");
@@ -91,12 +106,29 @@ function renderNewsItem(item) {
     li.appendChild(desc);
   }
 
+  if (item.aiComment) {
+    const aiBox = document.createElement("div");
+    aiBox.className = "ai-comment-box";
+    const aiLabel = document.createElement("div");
+    aiLabel.className = "ai-comment-label";
+    aiLabel.textContent = "🤖 AI分析(背景・ビジネスとの関わり)";
+    const aiText = document.createElement("div");
+    aiText.className = "ai-comment-text";
+    aiText.textContent = item.aiComment;
+    aiBox.appendChild(aiLabel);
+    aiBox.appendChild(aiText);
+    li.appendChild(aiBox);
+  }
+
+  const footer = document.createElement("div");
+  footer.className = "news-footer";
   const askBtn = document.createElement("button");
   askBtn.type = "button";
   askBtn.className = "btn-ask-ai";
-  askBtn.textContent = "🤖 AIに聞く";
+  askBtn.textContent = "💬 もっとAIに聞く";
   askBtn.addEventListener("click", () => handleAskAi(item));
-  li.appendChild(askBtn);
+  footer.appendChild(askBtn);
+  li.appendChild(footer);
 
   return li;
 }

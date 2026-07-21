@@ -21,4 +21,6 @@ jobs:
 
       - name: Fetch news and write to Firestore
         working-directory: scripts
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node fetch-news.js
