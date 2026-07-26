@@ -5,11 +5,11 @@ Usage:
     python3 main.py -o mix.mp3 <input1> <input2> [input3 ...]
     python3 main.py -o mix.mp3 --speeds 1.0,1.15,1.3 <input1> <input2> <input3>
 
-Each <input> can be a YouTube URL or a path to a local audio/video file.
-The order you list them in doesn't matter: tracks are automatically
-resequenced so adjacent tempos are as close as possible, then crossfaded on
-the beat. Crossfade length and tempo-matching tolerance are also chosen
-automatically.
+Each <input> can be a YouTube/SoundCloud URL (or anything else yt-dlp
+supports) or a path to a local audio/video file. The order you list them in
+doesn't matter: tracks are automatically resequenced so adjacent tempos are
+as close as possible, then crossfaded on the beat. Crossfade length and
+tempo-matching tolerance are also chosen automatically.
 """
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from pathlib import Path
 import soundfile as sf
 
 from crossfade_mixer.beat_analysis import analyze
-from crossfade_mixer.input_handler import encode_output, is_url, resolve_input
+from crossfade_mixer.input_handler import encode_output, is_youtube_url, resolve_input
 from crossfade_mixer.mixer import mix_tracks
 from crossfade_mixer.ordering import order_for_smooth_mix
 from crossfade_mixer.workout_fx import apply_workout_master
@@ -38,7 +38,7 @@ def parse_args(argv=None):
     parser.add_argument(
         "inputs",
         nargs="+",
-        help="YouTubeのURL、または音声/動画ファイルのパス(2つ以上)。"
+        help="YouTube/SoundCloudのURL、または音声/動画ファイルのパス(2つ以上)。"
              "並べる順番は自動で決めるので、指定順は気にしなくてよい",
     )
     parser.add_argument(
@@ -87,9 +87,10 @@ def main(argv=None) -> int:
         wav_paths = []
         prior_youtube = False
         for i, spec in enumerate(args.inputs):
-            if is_url(spec) and prior_youtube:
+            this_youtube = is_youtube_url(spec)
+            if this_youtube and prior_youtube:
                 time.sleep(6)  # space out consecutive YouTube fetches to avoid tripping rate limits
-            prior_youtube = is_url(spec)
+            prior_youtube = this_youtube
             print(f"  - ({i + 1}/{len(args.inputs)}) {spec}")
             wav_paths.append(resolve_input(spec, i, work_dir))
 

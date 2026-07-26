@@ -10,7 +10,7 @@ import gradio as gr
 import soundfile as sf
 
 from crossfade_mixer.beat_analysis import analyze
-from crossfade_mixer.input_handler import encode_output, is_url, resolve_input
+from crossfade_mixer.input_handler import encode_output, is_youtube_url, resolve_input
 from crossfade_mixer.mixer import mix_tracks
 from crossfade_mixer.ordering import order_for_smooth_mix
 from crossfade_mixer.workout_fx import apply_workout_master
@@ -50,7 +50,7 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
     labels = urls + file_labels
 
     if len(specs) < 2:
-        raise gr.Error("YouTubeリンクとファイルを合わせて2つ以上指定してください。")
+        raise gr.Error("リンクとファイルを合わせて2つ以上指定してください。")
 
     speeds = _parse_speeds(speeds_text, len(specs))
 
@@ -60,9 +60,10 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
     wav_paths = []
     prior_youtube = False
     for i, spec in enumerate(specs):
-        if is_url(spec) and prior_youtube:
+        this_youtube = is_youtube_url(spec)
+        if this_youtube and prior_youtube:
             time.sleep(6)  # space out consecutive YouTube fetches to avoid tripping rate limits
-        prior_youtube = is_url(spec)
+        prior_youtube = this_youtube
         try:
             wav_paths.append(resolve_input(spec, i, work_dir))
         except Exception as e:
@@ -101,7 +102,7 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
 with gr.Blocks(title="Music Crossfade Mixer") as demo:
     gr.Markdown(
         "# 🎧 Music Crossfade Mixer\n"
-        "複数の曲(YouTubeリンク or ローカルファイル)をBPM同期クロスフェードで1本のミックスにします。\n\n"
+        "複数の曲(YouTube/SoundCloudリンク or ローカルファイル)をBPM同期クロスフェードで1本のミックスにします。\n\n"
         "曲を繋げる順番はテンポ(BPM)が近い曲同士が隣り合うように自動で決めるので、"
         "入力欄に並べる順番は気にしなくて大丈夫です。"
     )
@@ -109,15 +110,15 @@ with gr.Blocks(title="Music Crossfade Mixer") as demo:
         with gr.Column():
             urls = gr.Textbox(
                 lines=6,
-                label="YouTubeリンク(1行に1つ)",
-                placeholder="https://www.youtube.com/watch?v=...\nhttps://www.youtube.com/watch?v=...",
+                label="YouTube / SoundCloud のリンク(1行に1つ)",
+                placeholder="https://www.youtube.com/watch?v=...\nhttps://soundcloud.com/...",
             )
             files = gr.File(
                 label="ローカルの音声/動画ファイル(複数選択可)",
                 file_count="multiple",
             )
             speeds_text = gr.Textbox(
-                label=f"曲ごとの再生速度(カンマ区切り。順番はYouTubeリンク→アップロードファイルの順(繋げる順ではなく入力欄の順)。"
+                label=f"曲ごとの再生速度(カンマ区切り。順番はリンク→アップロードファイルの順(繋げる順ではなく入力欄の順)。"
                       f"省略した曲は1.0倍。範囲は0より大きく{MAX_SPEED}以下)",
                 placeholder="1.0, 1.2, 1.15",
             )

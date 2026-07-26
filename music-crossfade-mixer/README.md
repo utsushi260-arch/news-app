@@ -11,18 +11,18 @@ pinned: false
 
 # music-crossfade-mixer
 
-複数の曲(YouTubeリンク or ローカルの音声/動画ファイル)を、BPM(テンポ)とビート位置を解析して
+複数の曲(YouTube/SoundCloudリンク or ローカルの音声/動画ファイル)を、BPM(テンポ)とビート位置を解析して
 できるだけ切れ目が分からないようにクロスフェードで繋げ、1つのミックス音源にまとめるCLIツールです。
 
 無料・ローカル完結で動きます(有料API・クラウドサービスは使用しません)。
 
-- `yt-dlp` … YouTubeから音声を取得
+- `yt-dlp` … YouTube/SoundCloudなどから音声を取得
 - `ffmpeg` … 音声の変換/抽出/最終エンコード
 - `librosa` … BPM・ビート位置の解析、タイムストレッチ(テンポ微調整)
 
 ## 仕組み
 
-1. 各入力をWAVに変換(YouTubeは`yt-dlp`でダウンロード、ローカルの動画/音声ファイルは`ffmpeg`で音声抽出)
+1. 各入力をWAVに変換(YouTube/SoundCloudは`yt-dlp`でダウンロード、ローカルの動画/音声ファイルは`ffmpeg`で音声抽出)
 2. 指定があれば、曲ごとにタイムストレッチ(ピッチを保ったまま再生速度を変更)
 3. `librosa`でテンポ(BPM)とビート位置を解析
 4. **入力した順番は使わず**、テンポが近い曲同士(倍テンポ・半分テンポの関係も考慮)が隣り合うように
@@ -54,7 +54,7 @@ pip install -r requirements.txt
 python3 main.py -o mix.mp3 <入力1> <入力2> [<入力3> ...]
 ```
 
-`<入力>` にはYouTubeのURL、またはローカルの音声/動画ファイルのパスを指定します。
+`<入力>` にはYouTube/SoundCloudのURL、またはローカルの音声/動画ファイルのパスを指定します。
 繋げる順番はテンポが近い曲同士になるよう自動で決まるので、指定する順番は気にしなくて大丈夫です。
 
 ```bash
@@ -63,8 +63,8 @@ python3 main.py -o mix.mp3 \
   "https://www.youtube.com/watch?v=XXXXXXXXXXX" \
   "https://www.youtube.com/watch?v=YYYYYYYYYYY"
 
-# ローカルファイルとYouTubeリンクの混在もOK
-python3 main.py -o mix.mp3 song1.mp3 "https://www.youtube.com/watch?v=ZZZZZZZZZZZ" song3.mp4
+# ローカルファイル・YouTube・SoundCloudの混在もOK
+python3 main.py -o mix.mp3 song1.mp3 "https://www.youtube.com/watch?v=ZZZZZZZZZZZ" "https://soundcloud.com/artist/track" song3.mp4
 ```
 
 ### オプション
@@ -84,7 +84,7 @@ python3 main.py -o workout_mix.mp3 song1.mp3 song2.mp3 song3.mp3 --speeds 1.0,1.
 ## Webアプリ版(Hugging Face Spaces)
 
 CLIとは別に、ブラウザ(スマホのSafariなど)から使えるGradio製のWebアプリ(`app.py`)も同梱しています。
-YouTubeリンクの入力欄とローカルファイルのアップロード欄があり、テンポが近い曲同士が繋がるよう
+YouTube/SoundCloudリンクの入力欄とローカルファイルのアップロード欄があり、テンポが近い曲同士が繋がるよう
 自動で順番を決めてクロスフェードでミックスします(決定した曲順は結果と一緒に表示されます)。
 曲ごとの再生速度指定と、ワークアウト向けマスタリングのチェックボックスも付いています。
 
