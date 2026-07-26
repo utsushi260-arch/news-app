@@ -58,7 +58,10 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
     progress(0.0, desc="入力を解決中...")
     wav_paths = []
     for i, spec in enumerate(specs):
-        wav_paths.append(resolve_input(spec, i, work_dir))
+        try:
+            wav_paths.append(resolve_input(spec, i, work_dir))
+        except Exception as e:
+            raise gr.Error(f"「{labels[i]}」の取得に失敗しました: {e}")
         progress(0.05 + 0.3 * (i + 1) / len(specs), desc=f"入力を解決中... ({i + 1}/{len(specs)})")
 
     analyzed = []

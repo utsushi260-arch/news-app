@@ -34,19 +34,41 @@ def encode_output(wav_path: Path, out_path: Path) -> None:
     _run(cmd, "出力ファイルのエンコード")
 
 
+_YT_DLP_BASE_ARGS = ["-x", "--audio-format", "wav", "--audio-quality", "0"]
+
+# YouTube sometimes blocks the default "web" client from datacenter IPs with a
+# "Sign in to confirm you're not a bot" error. Retrying with alternate player
+# clients (as the official mobile apps use) frequently avoids that check
+# without needing cookies. Not guaranteed to always work since YouTube keeps
+# changing this.
+_PLAYER_CLIENT_FALLBACKS = [None, "android", "ios"]
+
+
 def _download_youtube_audio(url: str, out_path: Path) -> None:
     out_tmpl = str(out_path.with_suffix(""))
-    cmd = [
-        "yt-dlp",
-        "-x",
-        "--audio-format", "wav",
-        "--audio-quality", "0",
-        "-o", f"{out_tmpl}.%(ext)s",
-        url,
-    ]
-    _run(cmd, f"YouTube音声のダウンロード ({url})")
-    if not out_path.exists():
-        raise RuntimeError(f"ダウンロードした音声が見つかりません: {out_path}")
+    last_error = ""
+    for player_client in _PLAYER_CLIENT_FALLBACKS:
+        cmd = [
+            "yt-dlp",
+            *_YT_DLP_BASE_ARGS,
+            "-o", f"{out_tmpl}.%(ext)s",
+        ]
+        if player_client:
+            cmd += ["--extractor-args", f"youtube:player_client={player_client}"]
+        cmd.append(url)
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode == 0 and out_path.exists():
+            return
+        last_error = result.stderr[-2000:]
+
+    hint = ""
+    if "Sign in to confirm" in last_error or "bot" in last_error.lower():
+        hint = (
+            "\n(YouTube側がこのサーバーからのアクセスをbot判定してブロックしています。"
+            "同じ動画をローカルファイルとしてアップロードする方法もお試しください)"
+        )
+    raise RuntimeError(f"YouTube音声のダウンロード({url})に失敗しました:\n{last_error}{hint}")
 
 
 def _extract_audio(src: Path, out_path: Path) -> None:
