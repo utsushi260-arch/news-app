@@ -3,10 +3,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import librosa
 import numpy as np
 
 from .beat_analysis import BeatInfo
+from .dsp import time_stretch_stereo
+
+# Chosen empirically so the crossfade reads as smooth without eating too much
+# of either track; not exposed to end users since there's no "wrong" tempo
+# they could pick to make these better.
+DEFAULT_CROSSFADE_SECONDS = 8.0
+DEFAULT_MAX_STRETCH = 0.08
 
 
 @dataclass
@@ -18,8 +24,8 @@ class MixState:
 
 def mix_tracks(
     analyzed: list[BeatInfo],
-    crossfade_beats: int = 16,
-    max_stretch: float = 0.08,
+    crossfade_seconds: float = DEFAULT_CROSSFADE_SECONDS,
+    max_stretch: float = DEFAULT_MAX_STRETCH,
 ) -> tuple[np.ndarray, int]:
     """Crossfade a list of analyzed tracks into a single stereo mix.
 
@@ -34,7 +40,7 @@ def mix_tracks(
     current = MixState(y=analyzed[0].y, tempo=analyzed[0].tempo, beat_times=analyzed[0].beat_times)
 
     for nxt in analyzed[1:]:
-        current = _crossfade_pair(current, nxt, crossfade_beats, max_stretch, sr)
+        current = _crossfade_pair(current, nxt, crossfade_seconds, max_stretch, sr)
 
     return current.y, sr
 
@@ -42,7 +48,7 @@ def mix_tracks(
 def _crossfade_pair(
     current: MixState,
     nxt: BeatInfo,
-    crossfade_beats: int,
+    crossfade_dur: float,
     max_stretch: float,
     sr: int,
 ) -> MixState:
@@ -53,9 +59,6 @@ def _crossfade_pair(
     else:
         stretched_y = nxt.y
         stretched_beats = nxt.beat_times
-
-    beat_period = 60.0 / current.tempo
-    crossfade_dur = crossfade_beats * beat_period
 
     cur_duration = current.y.shape[1] / sr
     target_outro = max(0.0, cur_duration - crossfade_dur)
@@ -105,10 +108,3 @@ def _nearest_beat(beat_times: np.ndarray, t: float) -> float:
         return t
     idx = int(np.argmin(np.abs(beat_times - t)))
     return float(beat_times[idx])
-
-
-def time_stretch_stereo(y: np.ndarray, rate: float) -> np.ndarray:
-    """Speed up (rate > 1) or slow down (rate < 1) stereo audio, preserving pitch."""
-    channels = [librosa.effects.time_stretch(y=y[ch], rate=rate) for ch in range(y.shape[0])]
-    min_len = min(len(c) for c in channels)
-    return np.stack([c[:min_len] for c in channels])

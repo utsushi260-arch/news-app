@@ -10,7 +10,8 @@ import soundfile as sf
 
 from crossfade_mixer.beat_analysis import analyze
 from crossfade_mixer.input_handler import encode_output, resolve_input
-from crossfade_mixer.mixer import mix_tracks, time_stretch_stereo
+from crossfade_mixer.mixer import mix_tracks
+from crossfade_mixer.workout_fx import apply_workout_master
 
 MAX_SPEED = 1.5
 
@@ -21,16 +22,30 @@ PWA_HEAD = """
 """
 
 
-def run_mix(youtube_urls_text, uploaded_files, crossfade_beats, max_stretch, speed, progress=gr.Progress()):
-    if not (0 < speed <= MAX_SPEED):
-        raise gr.Error(f"再生速度は0より大きく{MAX_SPEED}以下で指定してください")
+def _parse_speeds(speeds_text: str, count: int) -> list[float]:
+    raw = [s.strip() for s in (speeds_text or "").replace("\n", ",").split(",") if s.strip()]
+    if len(raw) > count:
+        raise gr.Error(f"曲ごとの再生速度の指定が多すぎます(曲は{count}個です)")
+    try:
+        speeds = [float(s) for s in raw]
+    except ValueError:
+        raise gr.Error("曲ごとの再生速度はカンマ区切りの数値で指定してください(例: 1.0, 1.2, 1.15)")
+    speeds += [1.0] * (count - len(speeds))
+    for s in speeds:
+        if not (0 < s <= MAX_SPEED):
+            raise gr.Error(f"曲ごとの再生速度は0より大きく{MAX_SPEED}以下で指定してください")
+    return speeds
 
+
+def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progress=gr.Progress()):
     urls = [line.strip() for line in (youtube_urls_text or "").splitlines() if line.strip()]
     file_paths = [f.name if hasattr(f, "name") else f for f in (uploaded_files or [])]
     specs = urls + file_paths
 
     if len(specs) < 2:
         raise gr.Error("YouTubeリンクとファイルを合わせて2つ以上指定してください。")
+
+    speeds = _parse_speeds(speeds_text, len(specs))
 
     work_dir = Path(tempfile.mkdtemp(prefix="crossfade_web_"))
 
@@ -41,16 +56,16 @@ def run_mix(youtube_urls_text, uploaded_files, crossfade_beats, max_stretch, spe
         progress(0.05 + 0.3 * (i + 1) / len(specs), desc=f"入力を解決中... ({i + 1}/{len(specs)})")
 
     analyzed = []
-    for i, p in enumerate(wav_paths):
-        analyzed.append(analyze(p))
+    for i, (p, speed) in enumerate(zip(wav_paths, speeds)):
+        analyzed.append(analyze(p, speed=speed))
         progress(0.35 + 0.3 * (i + 1) / len(wav_paths), desc=f"BPM/ビートを解析中... ({i + 1}/{len(wav_paths)})")
 
     progress(0.7, desc="クロスフェードでミックス中...")
-    mixed_y, sr = mix_tracks(analyzed, crossfade_beats=int(crossfade_beats), max_stretch=max_stretch)
+    mixed_y, sr = mix_tracks(analyzed)
 
-    if speed != 1.0:
-        progress(0.9, desc=f"再生速度を{speed}倍に変換中...")
-        mixed_y = time_stretch_stereo(mixed_y, speed)
+    if workout_mode:
+        progress(0.9, desc="ワークアウト向けにマスタリング中...")
+        mixed_y = apply_workout_master(mixed_y, sr)
 
     tmp_wav = work_dir / "_mixed_output.wav"
     sf.write(str(tmp_wav), mixed_y.T, sr)
@@ -79,16 +94,22 @@ with gr.Blocks(title="Music Crossfade Mixer") as demo:
                 label="ローカルの音声/動画ファイル(複数選択可。上のリンクの後ろに追加されます)",
                 file_count="multiple",
             )
-            crossfade_beats = gr.Slider(4, 32, value=16, step=1, label="クロスフェードのビート数")
-            max_stretch = gr.Slider(0.0, 0.2, value=0.08, step=0.01, label="テンポ合わせの最大伸縮率")
-            speed = gr.Slider(1.0, MAX_SPEED, value=1.0, step=0.05, label="再生速度(倍速)")
+            speeds_text = gr.Textbox(
+                label=f"曲ごとの再生速度(カンマ区切り。順番はYouTubeリンク→アップロードファイルの順。"
+                      f"省略した曲は1.0倍。範囲は0より大きく{MAX_SPEED}以下)",
+                placeholder="1.0, 1.2, 1.15",
+            )
+            workout_mode = gr.Checkbox(
+                label="🏋️ ワークアウト向けに強調する(ベース/ビートを大きめに)",
+                value=True,
+            )
             run_btn = gr.Button("ミックスする", variant="primary")
         with gr.Column():
             output_audio = gr.Audio(label="結果", type="filepath")
 
     run_btn.click(
         fn=run_mix,
-        inputs=[urls, files, crossfade_beats, max_stretch, speed],
+        inputs=[urls, files, speeds_text, workout_mode],
         outputs=output_audio,
     )
 

@@ -3,9 +3,11 @@
 
 Usage:
     python3 main.py -o mix.mp3 <input1> <input2> [input3 ...]
+    python3 main.py -o mix.mp3 --speeds 1.0,1.15,1.3 <input1> <input2> <input3>
 
 Each <input> can be a YouTube URL or a path to a local audio/video file.
-Tracks are combined in the order given, crossfaded on the beat.
+Tracks are combined in the order given, crossfaded on the beat. Crossfade
+length and tempo-matching tolerance are chosen automatically.
 """
 from __future__ import annotations
 
@@ -19,7 +21,8 @@ import soundfile as sf
 
 from crossfade_mixer.beat_analysis import analyze
 from crossfade_mixer.input_handler import encode_output, resolve_input
-from crossfade_mixer.mixer import mix_tracks, time_stretch_stereo
+from crossfade_mixer.mixer import mix_tracks
+from crossfade_mixer.workout_fx import apply_workout_master
 
 MAX_SPEED = 1.5
 
@@ -38,24 +41,32 @@ def parse_args(argv=None):
         help="出力ファイル名(拡張子で形式を判定。既定: mix.mp3)",
     )
     parser.add_argument(
-        "--crossfade-beats", type=int, default=16,
-        help="クロスフェードに使うビート数(既定: 16)",
+        "--speeds", default="",
+        help="各曲の再生速度倍率をカンマ区切りで指定(ピッチは保持)。inputsと同じ順番。"
+             "指定しなかった曲は1.0倍。例: --speeds 1.0,1.2,1.15。範囲は0より大きく1.5以下",
     )
     parser.add_argument(
-        "--max-stretch", type=float, default=0.08,
-        help="テンポ合わせで許容する最大伸縮率(既定: 0.08 = ±8%%)",
-    )
-    parser.add_argument(
-        "--speed", type=float, default=1.0,
-        help="完成したミックス全体の再生速度倍率(ピッチは保持)。1.0〜1.5の範囲で0.05刻み目安(例: 1.2, 1.25, 1.3)。既定: 1.0",
+        "--workout", action="store_true",
+        help="ワークアウト向けにベース/ビートを強調するマスタリングをかける",
     )
     parser.add_argument(
         "--keep-temp", action="store_true",
         help="ダウンロード/変換した中間WAVファイルを削除せず残す",
     )
     args = parser.parse_args(argv)
-    if not (0 < args.speed <= MAX_SPEED):
-        parser.error(f"--speed は 0 より大きく {MAX_SPEED} 以下で指定してください")
+
+    speed_strs = [s.strip() for s in args.speeds.split(",") if s.strip()]
+    if len(speed_strs) > len(args.inputs):
+        parser.error("--speeds に指定した値の数がinputsの数より多いです")
+    try:
+        speeds = [float(s) for s in speed_strs]
+    except ValueError:
+        parser.error("--speeds は数値をカンマ区切りで指定してください")
+    speeds += [1.0] * (len(args.inputs) - len(speeds))
+    for s in speeds:
+        if not (0 < s <= MAX_SPEED):
+            parser.error(f"--speeds の各値は 0 より大きく {MAX_SPEED} 以下で指定してください")
+    args.speeds = speeds
     return args
 
 
@@ -75,21 +86,17 @@ def main(argv=None) -> int:
 
         print("[2/3] BPM/ビートを解析中...")
         analyzed = []
-        for p in wav_paths:
-            info = analyze(p)
-            print(f"  - {p.name}: {info.tempo:.1f} BPM, {info.duration:.1f}秒")
+        for p, speed in zip(wav_paths, args.speeds):
+            info = analyze(p, speed=speed)
+            print(f"  - {p.name}: {info.tempo:.1f} BPM, {info.duration:.1f}秒 (再生速度 {speed}倍)")
             analyzed.append(info)
 
         print("[3/3] クロスフェードでミックス中...")
-        mixed_y, sr = mix_tracks(
-            analyzed,
-            crossfade_beats=args.crossfade_beats,
-            max_stretch=args.max_stretch,
-        )
+        mixed_y, sr = mix_tracks(analyzed)
 
-        if args.speed != 1.0:
-            print(f"再生速度を{args.speed}倍に変換中...")
-            mixed_y = time_stretch_stereo(mixed_y, args.speed)
+        if args.workout:
+            print("ワークアウト向けにマスタリング中...")
+            mixed_y = apply_workout_master(mixed_y, sr)
 
         tmp_wav = work_dir / "_mixed_output.wav"
         sf.write(str(tmp_wav), mixed_y.T, sr)
