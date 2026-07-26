@@ -8,10 +8,12 @@ import numpy as np
 from .beat_analysis import BeatInfo
 from .dsp import peak_safe_normalize, time_stretch_stereo
 
-# Chosen empirically so the crossfade reads as smooth without eating too much
-# of either track; not exposed to end users since there's no "wrong" tempo
-# they could pick to make these better.
-DEFAULT_CROSSFADE_SECONDS = 8.0
+# Short and beat-synced reads as a clean cut rather than an audible "two
+# songs playing at once" blend; combined with skipping quiet intros/outros
+# (see beat_analysis._energetic_bounds) this is what makes the switch hard
+# to pinpoint by ear. Not exposed to end users since there's no "wrong"
+# tempo they could pick to make these better.
+DEFAULT_CROSSFADE_SECONDS = 1.5
 DEFAULT_MAX_STRETCH = 0.08
 
 
@@ -20,6 +22,7 @@ class MixState:
     y: np.ndarray  # stereo audio so far, shape (2, n_samples)
     tempo: float  # reference tempo the mix is currently locked to
     beat_times: np.ndarray  # beat times (seconds) within the mix so far
+    outro_trim: float  # quiet-outro seconds to cut away from the current tail before the next join
 
 
 def mix_tracks(
@@ -37,7 +40,12 @@ def mix_tracks(
         raise ValueError("mix対象のトラックがありません")
 
     sr = analyzed[0].sr
-    current = MixState(y=analyzed[0].y, tempo=analyzed[0].tempo, beat_times=analyzed[0].beat_times)
+    current = MixState(
+        y=analyzed[0].y,
+        tempo=analyzed[0].tempo,
+        beat_times=analyzed[0].beat_times,
+        outro_trim=analyzed[0].outro_trim,
+    )
 
     for nxt in analyzed[1:]:
         current = _crossfade_pair(current, nxt, crossfade_seconds, max_stretch, sr)
@@ -59,14 +67,26 @@ def _crossfade_pair(
     if abs(rate - 1.0) > 1e-3:
         stretched_y = time_stretch_stereo(nxt.y, rate)
         stretched_beats = nxt.beat_times / rate
+        intro_skip = nxt.intro_skip / rate
     else:
         stretched_y = nxt.y
         stretched_beats = nxt.beat_times
+        intro_skip = nxt.intro_skip
 
     cur_duration = current.y.shape[1] / sr
-    target_outro = max(0.0, cur_duration - crossfade_dur)
+    target_outro = max(0.0, cur_duration - crossfade_dur - current.outro_trim)
     outro_start = _nearest_beat(current.beat_times, target_outro)
-    intro_offset = float(stretched_beats[0]) if len(stretched_beats) else 0.0
+
+    # Join on the first beat once the incoming track has properly kicked in,
+    # not just its first detected beat - that's usually still inside a quiet
+    # intro, which would make the switch obvious instead of hiding it.
+    past_intro = stretched_beats[stretched_beats >= intro_skip]
+    if len(past_intro):
+        intro_offset = float(past_intro[0])
+    elif len(stretched_beats):
+        intro_offset = float(stretched_beats[0])
+    else:
+        intro_offset = intro_skip
 
     outro_start_sample = int(outro_start * sr)
     intro_offset_sample = int(intro_offset * sr)
@@ -95,7 +115,7 @@ def _crossfade_pair(
     new_beats = np.concatenate([kept_beats, shifted_next_beats])
     new_beats = np.sort(new_beats[(new_beats >= 0) & (new_beats < new_duration)])
 
-    return MixState(y=new_y, tempo=current.tempo, beat_times=new_beats)
+    return MixState(y=new_y, tempo=current.tempo, beat_times=new_beats, outro_trim=nxt.outro_trim)
 
 
 def _clamped_rate(ref_tempo: float, track_tempo: float, max_stretch: float) -> float:
