@@ -43,6 +43,12 @@ _YT_DLP_BASE_ARGS = ["-x", "--audio-format", "wav", "--audio-quality", "0"]
 # changing this.
 _PLAYER_CLIENT_FALLBACKS = [None, "android", "ios"]
 
+# If a cookies.txt (Netscape format, exported from a logged-in browser) is
+# mounted here, yt-dlp uses it to authenticate as that account instead of
+# an anonymous request - this is what actually fixes bot/rate-limit blocks
+# on shared hosting IPs. Render mounts "Secret Files" under /etc/secrets/.
+_COOKIES_PATH = Path("/etc/secrets/cookies.txt")
+
 
 def _download_youtube_audio(url: str, out_path: Path) -> None:
     out_tmpl = str(out_path.with_suffix(""))
@@ -53,6 +59,8 @@ def _download_youtube_audio(url: str, out_path: Path) -> None:
             *_YT_DLP_BASE_ARGS,
             "-o", f"{out_tmpl}.%(ext)s",
         ]
+        if _COOKIES_PATH.is_file():
+            cmd += ["--cookies", str(_COOKIES_PATH)]
         if player_client:
             cmd += ["--extractor-args", f"youtube:player_client={player_client}"]
         cmd.append(url)
