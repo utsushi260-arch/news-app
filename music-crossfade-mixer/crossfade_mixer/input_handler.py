@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -46,21 +47,41 @@ _PLAYER_CLIENT_FALLBACKS = [None, "android", "ios"]
 # If a cookies.txt (Netscape format, exported from a logged-in browser) is
 # mounted here, yt-dlp uses it to authenticate as that account instead of
 # an anonymous request - this is what actually fixes bot/rate-limit blocks
-# on shared hosting IPs. Render mounts "Secret Files" under /etc/secrets/.
-_COOKIES_PATH = Path("/etc/secrets/cookies.txt")
+# on shared hosting IPs. Render mounts "Secret Files" under /etc/secrets/,
+# which is read-only, so it's copied to a writable path before use (yt-dlp
+# rewrites the cookie jar back to disk after every run).
+_COOKIES_SECRET_PATH = Path("/etc/secrets/cookies.txt")
+_COOKIES_WRITABLE_PATH = Path("/tmp/yt_cookies.txt")
+
+
+def _cookies_path() -> str | None:
+    if not _COOKIES_SECRET_PATH.is_file():
+        return None
+    if (
+        not _COOKIES_WRITABLE_PATH.is_file()
+        or _COOKIES_SECRET_PATH.stat().st_mtime > _COOKIES_WRITABLE_PATH.stat().st_mtime
+    ):
+        shutil.copyfile(_COOKIES_SECRET_PATH, _COOKIES_WRITABLE_PATH)
+    return str(_COOKIES_WRITABLE_PATH)
 
 
 def _download_youtube_audio(url: str, out_path: Path) -> None:
     out_tmpl = str(out_path.with_suffix(""))
+    cookies = _cookies_path()
+    # Forcing a specific player_client is a cookie-less bot-check workaround;
+    # some clients (e.g. ios) don't support cookies at all and conflict with
+    # them, so once we have real cookies just let yt-dlp pick its own client.
+    attempts = [None] if cookies else _PLAYER_CLIENT_FALLBACKS
+
     last_error = ""
-    for player_client in _PLAYER_CLIENT_FALLBACKS:
+    for player_client in attempts:
         cmd = [
             "yt-dlp",
             *_YT_DLP_BASE_ARGS,
             "-o", f"{out_tmpl}.%(ext)s",
         ]
-        if _COOKIES_PATH.is_file():
-            cmd += ["--cookies", str(_COOKIES_PATH)]
+        if cookies:
+            cmd += ["--cookies", cookies]
         if player_client:
             cmd += ["--extractor-args", f"youtube:player_client={player_client}"]
         cmd.append(url)
