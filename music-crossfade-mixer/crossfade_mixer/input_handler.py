@@ -44,6 +44,10 @@ _YT_DLP_BASE_ARGS = ["-x", "--audio-format", "wav", "--audio-quality", "0"]
 # changing this.
 _PLAYER_CLIENT_FALLBACKS = [None, "android", "ios"]
 
+# Some clients reject cookies outright, so don't attach them there even when
+# a cookies file is configured.
+_CLIENTS_WITHOUT_COOKIE_SUPPORT = {"ios"}
+
 # If a cookies.txt (Netscape format, exported from a logged-in browser) is
 # mounted here, yt-dlp uses it to authenticate as that account instead of
 # an anonymous request - this is what actually fixes bot/rate-limit blocks
@@ -68,19 +72,18 @@ def _cookies_path() -> str | None:
 def _download_youtube_audio(url: str, out_path: Path) -> None:
     out_tmpl = str(out_path.with_suffix(""))
     cookies = _cookies_path()
-    # Forcing a specific player_client is a cookie-less bot-check workaround;
-    # some clients (e.g. ios) don't support cookies at all and conflict with
-    # them, so once we have real cookies just let yt-dlp pick its own client.
-    attempts = [None] if cookies else _PLAYER_CLIENT_FALLBACKS
 
+    # Always work through the full client fallback chain - even if the
+    # cookies file is present but stale/rejected, later attempts (a
+    # different client, or no cookies at all) may still succeed.
     last_error = ""
-    for player_client in attempts:
+    for player_client in _PLAYER_CLIENT_FALLBACKS:
         cmd = [
             "yt-dlp",
             *_YT_DLP_BASE_ARGS,
             "-o", f"{out_tmpl}.%(ext)s",
         ]
-        if cookies:
+        if cookies and player_client not in _CLIENTS_WITHOUT_COOKIE_SUPPORT:
             cmd += ["--cookies", cookies]
         if player_client:
             cmd += ["--extractor-args", f"youtube:player_client={player_client}"]
