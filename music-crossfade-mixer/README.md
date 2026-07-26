@@ -1,3 +1,14 @@
+---
+title: Music Crossfade Mixer
+emoji: 🎧
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: 6.20.0
+app_file: app.py
+pinned: false
+---
+
 # music-crossfade-mixer
 
 複数の曲(YouTubeリンク or ローカルの音声/動画ファイル)を、BPM(テンポ)とビート位置を解析して
@@ -62,6 +73,23 @@ python3 main.py -o mix.mp3 song1.mp3 "https://www.youtube.com/watch?v=ZZZZZZZZZZ
 # 1.25倍速で書き出す例
 python3 main.py -o mix_1_25x.mp3 song1.mp3 song2.mp3 --speed 1.25
 ```
+
+## Webアプリ版(Hugging Face Spaces)
+
+CLIとは別に、ブラウザ(スマホのSafariなど)から使えるGradio製のWebアプリ(`app.py`)も同梱しています。
+YouTubeリンクの入力欄とローカルファイルのアップロード欄があり、並べた順にクロスフェードでミックスします。
+
+ローカルで試す場合:
+
+```bash
+pip install -r requirements.txt
+python3 app.py
+```
+
+Hugging Face Spacesにデプロイする場合は、このフォルダ(`music-crossfade-mixer/`)の中身をそのまま
+Spaceのリポジトリにpushするだけで動きます(`README.md`先頭のYAMLがSpaceの設定、`app.py`がエントリーポイント、
+`packages.txt`でffmpegを、`requirements.txt`でPython依存関係をインストールします)。
+デプロイ後のSpace URLをiPhoneのSafariで開き、共有ボタンから「ホーム画面に追加」するとアプリのように使えます。
 
 ## 注意事項
 
