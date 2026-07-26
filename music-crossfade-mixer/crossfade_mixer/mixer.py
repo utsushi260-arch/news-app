@@ -48,7 +48,7 @@ def _crossfade_pair(
 ) -> MixState:
     rate = _clamped_rate(current.tempo, nxt.tempo, max_stretch)
     if abs(rate - 1.0) > 1e-3:
-        stretched_y = _time_stretch_stereo(nxt.y, rate)
+        stretched_y = time_stretch_stereo(nxt.y, rate)
         stretched_beats = nxt.beat_times / rate
     else:
         stretched_y = nxt.y
@@ -107,7 +107,8 @@ def _nearest_beat(beat_times: np.ndarray, t: float) -> float:
     return float(beat_times[idx])
 
 
-def _time_stretch_stereo(y: np.ndarray, rate: float) -> np.ndarray:
+def time_stretch_stereo(y: np.ndarray, rate: float) -> np.ndarray:
+    """Speed up (rate > 1) or slow down (rate < 1) stereo audio, preserving pitch."""
     channels = [librosa.effects.time_stretch(y=y[ch], rate=rate) for ch in range(y.shape[0])]
     min_len = min(len(c) for c in channels)
     return np.stack([c[:min_len] for c in channels])

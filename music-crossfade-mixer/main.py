@@ -19,7 +19,7 @@ import soundfile as sf
 
 from crossfade_mixer.beat_analysis import analyze
 from crossfade_mixer.input_handler import encode_output, resolve_input
-from crossfade_mixer.mixer import mix_tracks
+from crossfade_mixer.mixer import mix_tracks, time_stretch_stereo
 
 
 def parse_args(argv=None):
@@ -44,10 +44,17 @@ def parse_args(argv=None):
         help="テンポ合わせで許容する最大伸縮率(既定: 0.08 = ±8%%)",
     )
     parser.add_argument(
+        "--speed", type=float, default=1.0,
+        help="完成したミックス全体の再生速度倍率(ピッチは保持)。例: 2.0で倍速。既定: 1.0",
+    )
+    parser.add_argument(
         "--keep-temp", action="store_true",
         help="ダウンロード/変換した中間WAVファイルを削除せず残す",
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.speed <= 0:
+        parser.error("--speed は正の数で指定してください")
+    return args
 
 
 def main(argv=None) -> int:
@@ -77,6 +84,10 @@ def main(argv=None) -> int:
             crossfade_beats=args.crossfade_beats,
             max_stretch=args.max_stretch,
         )
+
+        if args.speed != 1.0:
+            print(f"再生速度を{args.speed}倍に変換中...")
+            mixed_y = time_stretch_stereo(mixed_y, args.speed)
 
         tmp_wav = work_dir / "_mixed_output.wav"
         sf.write(str(tmp_wav), mixed_y.T, sr)
