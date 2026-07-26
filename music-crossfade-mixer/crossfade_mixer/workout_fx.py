@@ -9,6 +9,8 @@ from __future__ import annotations
 import numpy as np
 from scipy.signal import lfilter
 
+from .dsp import peak_safe_normalize
+
 
 def apply_workout_master(
     y: np.ndarray,
@@ -20,7 +22,7 @@ def apply_workout_master(
 ) -> np.ndarray:
     boosted = _low_shelf(y, sr, cutoff_hz=bass_cutoff_hz, gain_db=bass_gain_db)
     compressed = _compress(boosted, sr, ratio=ratio, makeup_db=makeup_db)
-    return _peak_safe_normalize(compressed)
+    return peak_safe_normalize(compressed)
 
 
 def _low_shelf(y: np.ndarray, sr: int, cutoff_hz: float, gain_db: float) -> np.ndarray:
@@ -76,10 +78,3 @@ def _compress(
     makeup = 10 ** (makeup_db / 20)
 
     return y * gain[np.newaxis, :] * makeup
-
-
-def _peak_safe_normalize(y: np.ndarray, target_peak: float = 0.97) -> np.ndarray:
-    peak = float(np.max(np.abs(y))) if y.size else 0.0
-    if peak > target_peak:
-        y = y * (target_peak / peak)
-    return y

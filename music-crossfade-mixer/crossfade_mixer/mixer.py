@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .beat_analysis import BeatInfo
-from .dsp import time_stretch_stereo
+from .dsp import peak_safe_normalize, time_stretch_stereo
 
 # Chosen empirically so the crossfade reads as smooth without eating too much
 # of either track; not exposed to end users since there's no "wrong" tempo
@@ -42,7 +42,10 @@ def mix_tracks(
     for nxt in analyzed[1:]:
         current = _crossfade_pair(current, nxt, crossfade_seconds, max_stretch, sr)
 
-    return current.y, sr
+    # Equal-power crossfades can push the overlap region above 0dBFS even
+    # when the source tracks were individually normalized, so guard against
+    # clipping here regardless of whether workout mastering runs afterward.
+    return peak_safe_normalize(current.y), sr
 
 
 def _crossfade_pair(
