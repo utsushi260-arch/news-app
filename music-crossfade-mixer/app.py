@@ -1,6 +1,7 @@
-"""Gradio web app for the music crossfade mixer (deployable to Hugging Face Spaces)."""
+"""Gradio web app for the music crossfade mixer (deployable to Hugging Face Spaces / Render / etc)."""
 from __future__ import annotations
 
+import os
 import tempfile
 from pathlib import Path
 
@@ -94,4 +95,5 @@ with gr.Blocks(title="Music Crossfade Mixer") as demo:
 demo.queue()
 
 if __name__ == "__main__":
-    demo.launch(head=PWA_HEAD)
+    port = int(os.environ.get("PORT", 7860))
+    demo.launch(server_name="0.0.0.0", server_port=port, head=PWA_HEAD)
