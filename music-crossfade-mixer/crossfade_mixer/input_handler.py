@@ -97,7 +97,12 @@ def _download_youtube_audio(url: str, out_path: Path) -> None:
             break
 
     hint = ""
-    if "429" in last_error or "Too Many Requests" in last_error:
+    if "no longer valid" in last_error or "have likely been rotated" in last_error:
+        hint = (
+            "\n(登録したCookieが失効しています。ブラウザから新しくcookies.txtを"
+            "書き出し直して、Renderの Secret Files のcookies.txtを差し替えてください)"
+        )
+    elif "429" in last_error or "Too Many Requests" in last_error:
         hint = (
             "\n(YouTube側のレート制限です。このサーバーのIPからのアクセスが集中した可能性があります。"
             "少し時間を置いてから再度試すか、ローカルファイルとしてアップロードしてください)"
