@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import threading
 import time
 from pathlib import Path
 from urllib.parse import urlparse
@@ -75,6 +76,20 @@ _COOKIES_WRITABLE_PATH = Path("/tmp/yt_cookies.txt")
 _RATE_LIMIT_COOLDOWN_SECONDS = 15 * 60
 _last_rate_limited_at = 0.0
 
+# yt-dlp can occasionally hang indefinitely on a stalled connection instead of
+# erroring out. Without a timeout, that leaves the web UI's progress bar
+# stuck with no feedback. Fail with a clear message after this long instead.
+_DOWNLOAD_TIMEOUT_SECONDS = 300
+
+# Tracks now download concurrently (see app.py's ThreadPoolExecutor), but
+# YouTube fetches still need to be spaced out to avoid tripping rate limits.
+# That spacing is enforced here - across whichever threads call in - rather
+# than by the caller looping sequentially, so non-YouTube downloads (e.g.
+# SoundCloud) aren't held up waiting behind it.
+_YOUTUBE_FETCH_SPACING_SECONDS = 6
+_youtube_fetch_lock = threading.Lock()
+_last_youtube_fetch_at = 0.0
+
 
 def _raise_if_cooling_down() -> None:
     remaining = _RATE_LIMIT_COOLDOWN_SECONDS - (time.time() - _last_rate_limited_at)
@@ -106,6 +121,16 @@ def _cookies_path() -> str | None:
 def _download_youtube_audio(url: str, out_path: Path) -> None:
     _raise_if_cooling_down()
 
+    global _last_youtube_fetch_at
+    with _youtube_fetch_lock:
+        wait = _YOUTUBE_FETCH_SPACING_SECONDS - (time.time() - _last_youtube_fetch_at)
+        if wait > 0:
+            time.sleep(wait)
+        _last_youtube_fetch_at = time.time()
+        _download_youtube_audio_locked(url, out_path)
+
+
+def _download_youtube_audio_locked(url: str, out_path: Path) -> None:
     out_tmpl = str(out_path.with_suffix(""))
     cookies = _cookies_path()
 
@@ -125,7 +150,11 @@ def _download_youtube_audio(url: str, out_path: Path) -> None:
             cmd += ["--extractor-args", f"youtube:player_client={player_client}"]
         cmd.append(url)
 
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=_DOWNLOAD_TIMEOUT_SECONDS)
+        except subprocess.TimeoutExpired:
+            last_error = f"{_DOWNLOAD_TIMEOUT_SECONDS}秒待っても応答がありませんでした(タイムアウト)"
+            continue
         if result.returncode == 0 and out_path.exists():
             return
         last_error = result.stderr[-2000:]
@@ -163,7 +192,13 @@ def _download_generic_audio(url: str, out_path: Path) -> None:
     """
     out_tmpl = str(out_path.with_suffix(""))
     cmd = ["yt-dlp", *_YT_DLP_BASE_ARGS, "-o", f"{out_tmpl}.%(ext)s", url]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=_DOWNLOAD_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(
+            f"音声のダウンロード({url})が{_DOWNLOAD_TIMEOUT_SECONDS}秒待っても終わらなかったため中断しました。"
+            "ネットワークが不安定か、サイト側の応答が遅い可能性があります。"
+        )
     if result.returncode != 0 or not out_path.exists():
         raise RuntimeError(f"音声のダウンロード({url})に失敗しました:\n{result.stderr[-2000:]}")
 

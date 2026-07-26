@@ -1,16 +1,16 @@
 """Gradio web app for the music crossfade mixer (deployable to Hugging Face Spaces / Render / etc)."""
 from __future__ import annotations
 
+import concurrent.futures
 import os
 import tempfile
-import time
 from pathlib import Path
 
 import gradio as gr
 import soundfile as sf
 
 from crossfade_mixer.beat_analysis import analyze
-from crossfade_mixer.input_handler import encode_output, is_youtube_url, resolve_input
+from crossfade_mixer.input_handler import encode_output, resolve_input
 from crossfade_mixer.mixer import mix_tracks
 from crossfade_mixer.ordering import order_for_smooth_mix
 from crossfade_mixer.workout_fx import apply_workout_master
@@ -57,18 +57,26 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
     work_dir = Path(tempfile.mkdtemp(prefix="crossfade_web_"))
 
     progress(0.0, desc="入力を解決中...")
-    wav_paths = []
-    prior_youtube = False
-    for i, spec in enumerate(specs):
-        this_youtube = is_youtube_url(spec)
-        if this_youtube and prior_youtube:
-            time.sleep(6)  # space out consecutive YouTube fetches to avoid tripping rate limits
-        prior_youtube = this_youtube
-        try:
-            wav_paths.append(resolve_input(spec, i, work_dir))
-        except Exception as e:
-            raise gr.Error(f"「{labels[i]}」の取得に失敗しました: {e}")
-        progress(0.05 + 0.3 * (i + 1) / len(specs), desc=f"入力を解決中... ({i + 1}/{len(specs)})")
+    # Downloads run concurrently (YouTube fetches are still spaced out
+    # internally by input_handler to avoid rate limits) so N tracks take
+    # roughly as long as the single slowest one instead of the sum of all N.
+    wav_paths = [None] * len(specs)
+    errors = {}
+    completed = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(4, len(specs))) as pool:
+        futures = {pool.submit(resolve_input, spec, i, work_dir): i for i, spec in enumerate(specs)}
+        for fut in concurrent.futures.as_completed(futures):
+            i = futures[fut]
+            completed += 1
+            try:
+                wav_paths[i] = fut.result()
+            except Exception as e:
+                errors[i] = e
+            progress(0.05 + 0.3 * completed / len(specs), desc=f"入力を解決中... ({completed}/{len(specs)})")
+
+    if errors:
+        i = min(errors)
+        raise gr.Error(f"「{labels[i]}」の取得に失敗しました: {errors[i]}")
 
     analyzed = []
     for i, (p, speed) in enumerate(zip(wav_paths, speeds)):
