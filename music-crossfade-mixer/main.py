@@ -88,7 +88,7 @@ def main(argv=None) -> int:
         prior_youtube = False
         for i, spec in enumerate(args.inputs):
             if is_url(spec) and prior_youtube:
-                time.sleep(3)  # space out consecutive YouTube fetches to avoid tripping rate limits
+                time.sleep(6)  # space out consecutive YouTube fetches to avoid tripping rate limits
             prior_youtube = is_url(spec)
             print(f"  - ({i + 1}/{len(args.inputs)}) {spec}")
             wav_paths.append(resolve_input(spec, i, work_dir))

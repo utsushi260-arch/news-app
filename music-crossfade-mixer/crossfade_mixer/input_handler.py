@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 _URL_RE = re.compile(r"^https?://", re.IGNORECASE)
@@ -58,6 +59,29 @@ _COOKIES_SECRET_PATH = Path("/etc/secrets/cookies.txt")
 _COOKIES_WRITABLE_PATH = Path("/tmp/yt_cookies.txt")
 
 
+# Once YouTube 429s this server's IP, immediately retrying (or letting the
+# next user's request try) only extends the block. Remember it for a while
+# and fail fast instead of hammering YouTube again during the cooldown.
+_RATE_LIMIT_COOLDOWN_SECONDS = 15 * 60
+_last_rate_limited_at = 0.0
+
+
+def _raise_if_cooling_down() -> None:
+    remaining = _RATE_LIMIT_COOLDOWN_SECONDS - (time.time() - _last_rate_limited_at)
+    if remaining > 0:
+        minutes = int(remaining // 60) + 1
+        raise RuntimeError(
+            "直近でYouTube側のレート制限(429)が発生したため、悪化を避けるためこのサーバーは"
+            f"あと約{minutes}分ほどYouTubeへのアクセスを控えます。"
+            "少し待つか、ローカルファイルとしてアップロードしてください。"
+        )
+
+
+def _mark_rate_limited() -> None:
+    global _last_rate_limited_at
+    _last_rate_limited_at = time.time()
+
+
 def _cookies_path() -> str | None:
     if not _COOKIES_SECRET_PATH.is_file():
         return None
@@ -70,6 +94,8 @@ def _cookies_path() -> str | None:
 
 
 def _download_youtube_audio(url: str, out_path: Path) -> None:
+    _raise_if_cooling_down()
+
     out_tmpl = str(out_path.with_suffix(""))
     cookies = _cookies_path()
 
@@ -97,6 +123,7 @@ def _download_youtube_audio(url: str, out_path: Path) -> None:
         # A 429 means "back off", not "try a different client" - hammering it
         # with more attempts right away only makes the rate limit worse.
         if "429" in last_error or "Too Many Requests" in last_error:
+            _mark_rate_limited()
             break
 
     hint = ""

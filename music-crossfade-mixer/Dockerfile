@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg nodejs c
 # challenges unless told otherwise, so install it explicitly.
 RUN curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh
 ENV PATH="/usr/local/bin:${PATH}"
+# Fail the build loudly here instead of finding out at runtime, days later,
+# from a cryptic yt-dlp warning.
+RUN deno --version && node --version
 
 WORKDIR /app
 

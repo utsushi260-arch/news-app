@@ -61,7 +61,7 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
     prior_youtube = False
     for i, spec in enumerate(specs):
         if is_url(spec) and prior_youtube:
-            time.sleep(3)  # space out consecutive YouTube fetches to avoid tripping rate limits
+            time.sleep(6)  # space out consecutive YouTube fetches to avoid tripping rate limits
         prior_youtube = is_url(spec)
         try:
             wav_paths.append(resolve_input(spec, i, work_dir))
