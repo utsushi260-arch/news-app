@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import os
+import shutil
 import tempfile
 import time
 from pathlib import Path
@@ -17,6 +18,21 @@ from crossfade_mixer.ordering import order_for_smooth_mix
 from crossfade_mixer.workout_fx import apply_workout_master
 
 MAX_SPEED = 1.5
+_WORK_DIR_PREFIX = "crossfade_web_"
+
+
+def _cleanup_old_work_dirs() -> None:
+    """Delete work dirs left behind by previous runs on this instance.
+
+    Each run's downloaded/intermediate WAVs (and the final mp3, once Gradio
+    has served it) aren't needed once the next run starts, but nothing was
+    deleting them - on a long-lived Cloud Run instance that handles several
+    mixes in a row, they piled up and ate into the same memory the audio
+    processing itself needs (Cloud Run's /tmp is memory-backed).
+    """
+    base = Path(tempfile.gettempdir())
+    for old_dir in base.glob(f"{_WORK_DIR_PREFIX}*"):
+        shutil.rmtree(old_dir, ignore_errors=True)
 
 PWA_HEAD = """
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -55,7 +71,8 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
 
     speeds = _parse_speeds(speeds_text, len(specs))
 
-    work_dir = Path(tempfile.mkdtemp(prefix="crossfade_web_"))
+    _cleanup_old_work_dirs()
+    work_dir = Path(tempfile.mkdtemp(prefix=_WORK_DIR_PREFIX))
     t0 = time.monotonic()
 
     def _elapsed() -> float:
@@ -104,6 +121,12 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
 
     print(f"[timing] analyze stage done at {_elapsed():.1f}s", flush=True)
 
+    # Each track's full waveform is already loaded into `analyzed` at this
+    # point, so the downloaded WAVs are dead weight for the rest of the run.
+    for p in wav_paths:
+        if p is not None:
+            Path(p).unlink(missing_ok=True)
+
     progress(0.62, desc="テンポが近い曲同士が繋がるよう順番を決定中...")
     order = order_for_smooth_mix(analyzed)
     analyzed = [analyzed[i] for i in order]
@@ -125,6 +148,7 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
 
     out_path = work_dir / "mix.mp3"
     encode_output(tmp_wav, out_path)
+    tmp_wav.unlink(missing_ok=True)
     print(f"[timing] total {_elapsed():.1f}s", flush=True)
 
     progress(1.0, desc="完了")
