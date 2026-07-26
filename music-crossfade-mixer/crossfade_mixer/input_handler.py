@@ -62,8 +62,18 @@ def _download_youtube_audio(url: str, out_path: Path) -> None:
             return
         last_error = result.stderr[-2000:]
 
+        # A 429 means "back off", not "try a different client" - hammering it
+        # with more attempts right away only makes the rate limit worse.
+        if "429" in last_error or "Too Many Requests" in last_error:
+            break
+
     hint = ""
-    if "Sign in to confirm" in last_error or "bot" in last_error.lower():
+    if "429" in last_error or "Too Many Requests" in last_error:
+        hint = (
+            "\n(YouTube側のレート制限です。このサーバーのIPからのアクセスが集中した可能性があります。"
+            "少し時間を置いてから再度試すか、ローカルファイルとしてアップロードしてください)"
+        )
+    elif "Sign in to confirm" in last_error or "bot" in last_error.lower():
         hint = (
             "\n(YouTube側がこのサーバーからのアクセスをbot判定してブロックしています。"
             "同じ動画をローカルファイルとしてアップロードする方法もお試しください)"

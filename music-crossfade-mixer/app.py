@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import os
 import tempfile
+import time
 from pathlib import Path
 
 import gradio as gr
 import soundfile as sf
 
 from crossfade_mixer.beat_analysis import analyze
-from crossfade_mixer.input_handler import encode_output, resolve_input
+from crossfade_mixer.input_handler import encode_output, is_url, resolve_input
 from crossfade_mixer.mixer import mix_tracks
 from crossfade_mixer.ordering import order_for_smooth_mix
 from crossfade_mixer.workout_fx import apply_workout_master
@@ -57,7 +58,11 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
 
     progress(0.0, desc="入力を解決中...")
     wav_paths = []
+    prior_youtube = False
     for i, spec in enumerate(specs):
+        if is_url(spec) and prior_youtube:
+            time.sleep(3)  # space out consecutive YouTube fetches to avoid tripping rate limits
+        prior_youtube = is_url(spec)
         try:
             wav_paths.append(resolve_input(spec, i, work_dir))
         except Exception as e:
