@@ -46,9 +46,17 @@ def mix_tracks(
         beat_times=analyzed[0].beat_times,
         outro_trim=analyzed[0].outro_trim,
     )
+    # Each track's raw audio is only needed up to the moment it's folded
+    # into `current` - after that, the merged result lives on in
+    # current.y and the original per-track buffer is dead weight. Dropping
+    # the reference here keeps peak memory roughly constant regardless of
+    # how many tracks are in the mix, instead of growing with track count
+    # (which is what was causing Cloud Run to run out of memory on 5+ tracks).
+    analyzed[0].y = None
 
     for nxt in analyzed[1:]:
         current = _crossfade_pair(current, nxt, crossfade_seconds, max_stretch, sr)
+        nxt.y = None
 
     # Equal-power crossfades can push the overlap region above 0dBFS even
     # when the source tracks were individually normalized, so guard against
