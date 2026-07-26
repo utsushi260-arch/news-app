@@ -4,6 +4,7 @@ from __future__ import annotations
 import concurrent.futures
 import os
 import tempfile
+import time
 from pathlib import Path
 
 import gradio as gr
@@ -55,6 +56,10 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
     speeds = _parse_speeds(speeds_text, len(specs))
 
     work_dir = Path(tempfile.mkdtemp(prefix="crossfade_web_"))
+    t0 = time.monotonic()
+
+    def _elapsed() -> float:
+        return time.monotonic() - t0
 
     progress(0.0, desc="入力を解決中...")
     # Downloads run concurrently (YouTube fetches are still spaced out
@@ -78,10 +83,26 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
         i = min(errors)
         raise gr.Error(f"「{labels[i]}」の取得に失敗しました: {errors[i]}")
 
-    analyzed = []
-    for i, (p, speed) in enumerate(zip(wav_paths, speeds)):
-        analyzed.append(analyze(p, speed=speed))
-        progress(0.35 + 0.25 * (i + 1) / len(wav_paths), desc=f"BPM/ビートを解析中... ({i + 1}/{len(wav_paths)})")
+    print(f"[timing] download stage done at {_elapsed():.1f}s", flush=True)
+
+    # librosa's beat tracking / time-stretch calls spend most of their time
+    # inside numpy/scipy C code, which releases the GIL - so, like the
+    # downloads above, analyzing N tracks concurrently uses N CPU cores
+    # instead of leaving them idle while one track analyzes at a time.
+    analyzed = [None] * len(wav_paths)
+    completed = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(4, len(wav_paths))) as pool:
+        futures = {
+            pool.submit(analyze, p, speed=speed): i
+            for i, (p, speed) in enumerate(zip(wav_paths, speeds))
+        }
+        for fut in concurrent.futures.as_completed(futures):
+            i = futures[fut]
+            completed += 1
+            analyzed[i] = fut.result()
+            progress(0.35 + 0.25 * completed / len(wav_paths), desc=f"BPM/ビートを解析中... ({completed}/{len(wav_paths)})")
+
+    print(f"[timing] analyze stage done at {_elapsed():.1f}s", flush=True)
 
     progress(0.62, desc="テンポが近い曲同士が繋がるよう順番を決定中...")
     order = order_for_smooth_mix(analyzed)
@@ -92,16 +113,19 @@ def run_mix(youtube_urls_text, uploaded_files, speeds_text, workout_mode, progre
 
     progress(0.7, desc="クロスフェードでミックス中...")
     mixed_y, sr = mix_tracks(analyzed)
+    print(f"[timing] crossfade mix done at {_elapsed():.1f}s", flush=True)
 
     if workout_mode:
         progress(0.9, desc="ワークアウト向けにマスタリング中...")
         mixed_y = apply_workout_master(mixed_y, sr)
+        print(f"[timing] workout mastering done at {_elapsed():.1f}s", flush=True)
 
     tmp_wav = work_dir / "_mixed_output.wav"
     sf.write(str(tmp_wav), mixed_y.T, sr)
 
     out_path = work_dir / "mix.mp3"
     encode_output(tmp_wav, out_path)
+    print(f"[timing] total {_elapsed():.1f}s", flush=True)
 
     progress(1.0, desc="完了")
     return str(out_path), order_summary
