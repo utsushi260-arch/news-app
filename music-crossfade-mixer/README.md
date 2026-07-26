@@ -55,12 +55,12 @@ python3 main.py -o mix.mp3 song1.mp3 "https://www.youtube.com/watch?v=ZZZZZZZZZZ
 | `-o, --output` | `mix.mp3` | 出力ファイル名(拡張子で形式判定) |
 | `--crossfade-beats` | `16` | クロスフェードに使うビート数(長いほどゆったり切り替わる) |
 | `--max-stretch` | `0.08` | テンポ合わせで許容する最大伸縮率(±8%) |
-| `--speed` | `1.0` | 完成したミックス全体の再生速度倍率(ピッチは保持したまま速度だけ変える)。`2.0`で倍速 |
+| `--speed` | `1.0` | 完成したミックス全体の再生速度倍率(ピッチは保持したまま速度だけ変える)。`1.0`〜`1.5`の範囲で指定(例: `1.2`, `1.25`, `1.3`)。上限は`1.5` |
 | `--keep-temp` | オフ | ダウンロード/変換した中間WAVファイルを削除せず残す |
 
 ```bash
-# 倍速で書き出す例
-python3 main.py -o mix_2x.mp3 song1.mp3 song2.mp3 --speed 2.0
+# 1.25倍速で書き出す例
+python3 main.py -o mix_1_25x.mp3 song1.mp3 song2.mp3 --speed 1.25
 ```
 
 ## 注意事項

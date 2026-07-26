@@ -21,6 +21,8 @@ from crossfade_mixer.beat_analysis import analyze
 from crossfade_mixer.input_handler import encode_output, resolve_input
 from crossfade_mixer.mixer import mix_tracks, time_stretch_stereo
 
+MAX_SPEED = 1.5
+
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
@@ -45,15 +47,15 @@ def parse_args(argv=None):
     )
     parser.add_argument(
         "--speed", type=float, default=1.0,
-        help="完成したミックス全体の再生速度倍率(ピッチは保持)。例: 2.0で倍速。既定: 1.0",
+        help="完成したミックス全体の再生速度倍率(ピッチは保持)。1.0〜1.5の範囲で0.05刻み目安(例: 1.2, 1.25, 1.3)。既定: 1.0",
     )
     parser.add_argument(
         "--keep-temp", action="store_true",
         help="ダウンロード/変換した中間WAVファイルを削除せず残す",
     )
     args = parser.parse_args(argv)
-    if args.speed <= 0:
-        parser.error("--speed は正の数で指定してください")
+    if not (0 < args.speed <= MAX_SPEED):
+        parser.error(f"--speed は 0 より大きく {MAX_SPEED} 以下で指定してください")
     return args
 
 
