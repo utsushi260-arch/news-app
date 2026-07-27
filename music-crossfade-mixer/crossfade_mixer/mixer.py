@@ -8,12 +8,12 @@ import numpy as np
 from .beat_analysis import BeatInfo
 from .dsp import peak_safe_normalize, time_stretch_stereo
 
-# Short and beat-synced reads as a clean cut rather than an audible "two
-# songs playing at once" blend; combined with skipping quiet intros/outros
-# (see beat_analysis._energetic_bounds) this is what makes the switch hard
-# to pinpoint by ear. Not exposed to end users since there's no "wrong"
-# tempo they could pick to make these better.
-DEFAULT_CROSSFADE_SECONDS = 1.5
+# Long enough that both tracks are clearly audible together and one is
+# heard fading out while the other builds in, like a DJ blend, rather than
+# a quick beat-synced cut. Combined with skipping quiet intros/outros (see
+# beat_analysis._energetic_bounds) and beat alignment, the overlap stays on
+# the beat throughout instead of just fading blindly.
+DEFAULT_CROSSFADE_SECONDS = 8.0
 DEFAULT_MAX_STRETCH = 0.08
 
 
