@@ -45,12 +45,24 @@ function showAiCopiedToast() {
 
 async function handleAskAi(item) {
   const question = buildAiQuestion(item);
+
+  // iOSのSafariはawaitの後のwindow.open()をポップアップとしてブロックすることがあるため、
+  // ユーザー操作の直後(同期的)に先にタブを開いてから、クリップボードへの書き込みを行う。
+  // (noopenerを渡すと参照がnullになりlocationを後から設定できないため、開いた直後にopenerを切る)
+  const newTab = window.open("", "_blank");
+  if (newTab) newTab.opener = null;
+
   try {
     await navigator.clipboard.writeText(question);
   } catch (e) {
     console.error("クリップボードへのコピーに失敗しました", e);
   }
-  window.open(AI_CHAT_URL, "_blank", "noopener,noreferrer");
+
+  if (newTab) {
+    newTab.location = AI_CHAT_URL;
+  } else {
+    window.open(AI_CHAT_URL, "_blank", "noopener,noreferrer");
+  }
   showAiCopiedToast();
 }
 

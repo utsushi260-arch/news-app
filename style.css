@@ -14,17 +14,24 @@
   box-sizing: border-box;
 }
 
+button {
+  touch-action: manipulation;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
   background: var(--bg);
   color: var(--text);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
 }
 
 #app {
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 0 40px;
+  padding: 0 0 calc(40px + env(safe-area-inset-bottom));
 }
 
 .topbar {
@@ -32,6 +39,9 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
   background: var(--primary);
   color: white;
   position: sticky;
@@ -50,6 +60,8 @@ body {
 
 .page-note {
   margin: 12px 16px;
+  margin-left: calc(16px + env(safe-area-inset-left));
+  margin-right: calc(16px + env(safe-area-inset-right));
   font-size: 0.8rem;
   color: var(--muted);
 }
@@ -64,6 +76,8 @@ body {
   border-radius: 12px;
   padding: 16px;
   margin: 0 16px 16px;
+  margin-left: calc(16px + env(safe-area-inset-left));
+  margin-right: calc(16px + env(safe-area-inset-right));
 }
 
 .card h2 {
@@ -197,9 +211,9 @@ body {
 
 .hint-toast {
   position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
+  left: calc(16px + env(safe-area-inset-left));
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
   max-width: 448px;
   margin: 0 auto;
   background: var(--primary-dark);
