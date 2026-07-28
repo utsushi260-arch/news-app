@@ -84,18 +84,17 @@ function renderNewsItem(item) {
   const li = document.createElement("li");
   li.className = "news-item";
 
-  const header = document.createElement("div");
+  // ===== タップすると開閉するヘッダー(見出し) =====
+  const header = document.createElement("button");
+  header.type = "button";
   header.className = "news-header";
 
-  const a = document.createElement("a");
-  a.className = "news-title";
-  a.href = item.link;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  a.textContent = item.title;
-  header.appendChild(a);
+  const titleWrap = document.createElement("span");
+  titleWrap.className = "news-title";
+  titleWrap.textContent = item.title;
+  header.appendChild(titleWrap);
 
-  const meta = document.createElement("div");
+  const meta = document.createElement("span");
   meta.className = "news-meta";
   const sourceBadge = document.createElement("span");
   sourceBadge.className = "source-badge";
@@ -109,13 +108,26 @@ function renderNewsItem(item) {
   }
   header.appendChild(meta);
 
+  const chevron = document.createElement("span");
+  chevron.className = "news-chevron";
+  chevron.textContent = "▼";
+  header.appendChild(chevron);
+
+  header.addEventListener("click", () => {
+    li.classList.toggle("expanded");
+  });
+
   li.appendChild(header);
+
+  // ===== 開いた時だけ見える詳細部分 =====
+  const body = document.createElement("div");
+  body.className = "news-body";
 
   if (item.description) {
     const desc = document.createElement("div");
     desc.className = "news-desc";
     desc.textContent = item.description;
-    li.appendChild(desc);
+    body.appendChild(desc);
   }
 
   if (item.aiComment) {
@@ -129,18 +141,29 @@ function renderNewsItem(item) {
     aiText.textContent = item.aiComment;
     aiBox.appendChild(aiLabel);
     aiBox.appendChild(aiText);
-    li.appendChild(aiBox);
+    body.appendChild(aiBox);
   }
 
   const footer = document.createElement("div");
   footer.className = "news-footer";
+
+  const readMoreLink = document.createElement("a");
+  readMoreLink.className = "btn-read-more";
+  readMoreLink.href = item.link;
+  readMoreLink.target = "_blank";
+  readMoreLink.rel = "noopener noreferrer";
+  readMoreLink.textContent = "🔗 元記事を読む";
+  footer.appendChild(readMoreLink);
+
   const askBtn = document.createElement("button");
   askBtn.type = "button";
   askBtn.className = "btn-ask-ai";
   askBtn.textContent = "💬 もっとAIに聞く";
   askBtn.addEventListener("click", () => handleAskAi(item));
   footer.appendChild(askBtn);
-  li.appendChild(footer);
+
+  body.appendChild(footer);
+  li.appendChild(body);
 
   return li;
 }
@@ -176,5 +199,32 @@ async function loadNewsCategory(categoryId) {
   items.forEach((item) => listEl.appendChild(renderNewsItem(item)));
 }
 
+// ================= カテゴリ一覧⇔詳細画面の切り替え =================
+// (PC幅では#category-menu/#detail-headerをCSSで非表示にし、全カテゴリを並べて表示する)
+const appEl = document.getElementById("app");
+
+function showCategory(categoryId) {
+  appEl.classList.remove("mode-menu");
+  appEl.classList.add("mode-detail");
+  document.getElementById("detail-header").classList.remove("hidden");
+
+  document.querySelectorAll("#news-sections .card").forEach((card) => {
+    card.classList.toggle("active", card.dataset.category === categoryId);
+  });
+}
+
+function showMenu() {
+  appEl.classList.remove("mode-detail");
+  appEl.classList.add("mode-menu");
+  document.getElementById("detail-header").classList.add("hidden");
+}
+
+document.querySelectorAll(".category-btn").forEach((btn) => {
+  btn.addEventListener("click", () => showCategory(btn.dataset.category));
+});
+
+document.getElementById("btn-back").addEventListener("click", showMenu);
+
 renderTodayDate();
+showMenu();
 CATEGORY_IDS.forEach((id) => loadNewsCategory(id));
