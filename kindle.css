@@ -1,0 +1,223 @@
+/* ===== Kindle文字起こしページ 専用スタイル ===== */
+
+.topbar-link {
+  color: white;
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+}
+
+.topbar-link:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field:last-of-type {
+  margin-bottom: 0;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-bottom: 8px;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+/* 縦書き/横書き 切り替え */
+.segmented {
+  display: flex;
+  gap: 8px;
+}
+
+.seg-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seg-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+/* ファイル選択 */
+.file-input {
+  display: block;
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: #fafbfa;
+}
+
+/* サムネイル */
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.thumbs:empty {
+  margin-top: 0;
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #eee;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-index {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background: rgba(35, 68, 57, 0.85);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.thumb-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(179, 70, 44, 0.9);
+  color: white;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ボタン */
+.btn-primary {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary:disabled {
+  background: #b7c4bf;
+  cursor: not-allowed;
+}
+
+.btn-primary:not(:disabled):active {
+  background: var(--primary-dark);
+}
+
+/* 進捗バー */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--primary);
+  transition: width 0.2s ease;
+}
+
+/* 結果テキスト */
+.result-text {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text);
+  background: #fafbfa;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-secondary {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 12px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: white;
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary:active {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-ghost {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: white;
+  color: var(--muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.btn-ghost:active {
+  background: #f0f2f1;
+}

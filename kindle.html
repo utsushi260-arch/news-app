@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Kindle文字起こし</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Kindle文字起こし" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#2f5d50" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="kindle.css" />
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <h1>📖 Kindle文字起こし</h1>
+    <div class="today-badge">
+      <a href="index.html" class="topbar-link">🗞️ ニュース</a>
+    </div>
+  </header>
+
+  <p class="page-note">
+    お手元のKindleの<strong>スクリーンショットや写真</strong>を選ぶと、端末内で文字を読み取ってテキストにします（画像は外部に送信されません）。
+    読書メモや引用の書き起こしなど、ご自身の本の個人利用にお使いください。
+  </p>
+
+  <section class="card">
+    <h2>1. 読み取り設定</h2>
+
+    <div class="field">
+      <span class="field-label">本文の向き</span>
+      <div class="segmented" id="orientation-group">
+        <button type="button" class="seg-btn active" data-lang="jpn_vert">縦書き（小説など）</button>
+        <button type="button" class="seg-btn" data-lang="jpn">横書き（実用書など）</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="file-input">画像を選ぶ（複数ページまとめて選択可）</label>
+      <input id="file-input" class="file-input" type="file" accept="image/*" multiple />
+      <p class="field-hint">スマホでは「写真ライブラリ」からスクリーンショットを選べます。ページ順に並べておくときれいにつながります。</p>
+    </div>
+
+    <div id="thumbs" class="thumbs"></div>
+
+    <button type="button" id="btn-run" class="btn-primary" disabled>文字起こしを開始</button>
+  </section>
+
+  <section id="progress-card" class="card hidden">
+    <h2>2. 読み取り中…</h2>
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+    <p id="progress-text" class="fetched-at">準備中…</p>
+  </section>
+
+  <section id="result-card" class="card hidden">
+    <h2>3. 結果</h2>
+    <p class="field-hint">読み取り結果は完璧ではありません。下のテキストを直接編集して整えられます。</p>
+    <textarea id="result-text" class="result-text" spellcheck="false" placeholder="ここに文字起こし結果が表示されます"></textarea>
+    <div class="result-actions">
+      <button type="button" id="btn-copy" class="btn-secondary">📋 コピー</button>
+      <button type="button" id="btn-download" class="btn-secondary">⬇️ .txt保存</button>
+      <button type="button" id="btn-clear" class="btn-ghost">クリア</button>
+    </div>
+  </section>
+
+  <p id="toast" class="hint-toast hidden"></p>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="kindle.js"></script>
+</body>
+</html>
