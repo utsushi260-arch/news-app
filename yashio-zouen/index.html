@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>やしお造園|庭木の剪定・造園・外構</title>
+<meta name="description" content="やしお造園は、庭木の剪定・お手入れから作庭、伐採、外構まで手がける造園店です。現地調査・お見積りは無料。一軒一軒の庭に合わせた、確かな職人の手仕事をお届けします。">
+<style>
+:root{
+  --paper:#F5F7F0;
+  --paper-2:#ECF0E4;
+  --ink:#22302A;
+  --ink-soft:#5C665F;
+  --pine:#2E5443;
+  --pine-deep:#1F3C30;
+  --moss:#7C9153;
+  --line:#D4DCCB;
+  --card:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#141B17;
+    --paper-2:#1A231E;
+    --ink:#E8EDE6;
+    --ink-soft:#A3B0A6;
+    --pine:#8FB89F;
+    --pine-deep:#C4DCCB;
+    --moss:#A6BF7B;
+    --line:#2C3A31;
+    --card:#1D2822;
+  }
+}
+:root[data-theme="light"]{
+  --paper:#F5F7F0; --paper-2:#ECF0E4; --ink:#22302A; --ink-soft:#5C665F;
+  --pine:#2E5443; --pine-deep:#1F3C30; --moss:#7C9153; --line:#D4DCCB; --card:#FFFFFF;
+}
+:root[data-theme="dark"]{
+  --paper:#141B17; --paper-2:#1A231E; --ink:#E8EDE6; --ink-soft:#A3B0A6;
+  --pine:#8FB89F; --pine-deep:#C4DCCB; --moss:#A6BF7B; --line:#2C3A31; --card:#1D2822;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation:none !important;transition:none !important;}
+}
+body{
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.9;
+  font-size:16px;
+}
+.serif{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;}
+a{color:var(--pine);}
+a:focus-visible,button:focus-visible{outline:3px solid var(--moss);outline-offset:3px;}
+
+/* ---- header ---- */
+header{
+  position:sticky;top:0;z-index:10;
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.header-inner{
+  max-width:1080px;margin:0 auto;padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.brand{
+  font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  font-size:1.25rem;font-weight:600;letter-spacing:.14em;
+  color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:10px;
+}
+.brand .leaf{
+  width:14px;height:14px;background:var(--moss);
+  border-radius:0 60% 0 60%;transform:rotate(-8deg);flex:none;
+}
+nav{display:flex;gap:22px;}
+nav a{
+  text-decoration:none;color:var(--ink-soft);font-size:.85rem;letter-spacing:.1em;
+}
+nav a:hover{color:var(--pine);}
+@media (max-width:640px){ nav{display:none;} }
+
+/* ---- hero ---- */
+.hero{
+  position:relative;overflow:hidden;
+  max-width:1080px;margin:0 auto;padding:88px 20px 96px;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:40px;
+}
+.hero-copy h1{
+  writing-mode:vertical-rl;
+  font-size:clamp(2rem, 5vw, 3.2rem);
+  font-weight:500;letter-spacing:.28em;line-height:1.7;
+  height:min(58vh, 460px);
+  color:var(--ink);
+  text-wrap:balance;
+}
+.hero-copy h1 em{font-style:normal;color:var(--pine);}
+.hero-side{max-width:26rem;padding-top:12px;}
+.eyebrow{
+  display:flex;align-items:center;gap:10px;
+  font-size:.78rem;letter-spacing:.22em;color:var(--moss);font-weight:600;
+  margin-bottom:18px;
+}
+.eyebrow::before{content:"";width:28px;height:1px;background:var(--moss);}
+.hero-side p{color:var(--ink-soft);margin-bottom:28px;}
+.cta{
+  display:inline-block;background:var(--pine);color:var(--paper);
+  text-decoration:none;padding:14px 34px;letter-spacing:.18em;font-size:.9rem;
+  border-radius:2px;
+}
+:root[data-theme="dark"] .cta{color:#141B17;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cta{color:#141B17;} }
+.cta:hover{background:var(--pine-deep);}
+.hero-mark{
+  position:absolute;right:-40px;bottom:-70px;z-index:-1;
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:clamp(14rem,30vw,22rem);line-height:1;
+  color:var(--paper-2);user-select:none;pointer-events:none;
+}
+@media (max-width:720px){
+  .hero{flex-direction:column;padding:56px 20px 72px;}
+  .hero-copy h1{height:auto;writing-mode:horizontal-tb;letter-spacing:.12em;}
+}
+
+/* ---- sections ---- */
+section{padding:72px 20px;}
+section:nth-of-type(even){background:var(--paper-2);}
+.inner{max-width:1080px;margin:0 auto;}
+h2{
+  font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  font-size:clamp(1.5rem,3vw,2rem);font-weight:600;letter-spacing:.16em;
+  margin-bottom:12px;text-wrap:balance;
+}
+.section-lead{color:var(--ink-soft);max-width:40rem;margin-bottom:40px;}
+
+/* services */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:4px;
+  padding:28px 24px;
+}
+.card .leaf{
+  width:18px;height:18px;background:var(--moss);
+  border-radius:0 60% 0 60%;transform:rotate(-8deg);margin-bottom:16px;
+}
+.card h3{
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:1.1rem;letter-spacing:.1em;margin-bottom:10px;color:var(--pine-deep);
+}
+.card p{font-size:.9rem;color:var(--ink-soft);}
+
+/* kodawari */
+.kodawari{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:36px;}
+.kodawari h3{
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:1.15rem;letter-spacing:.1em;margin-bottom:10px;
+  display:flex;align-items:baseline;gap:12px;
+}
+.kodawari h3 span{color:var(--moss);font-size:.85rem;letter-spacing:.2em;}
+.kodawari p{font-size:.92rem;color:var(--ink-soft);}
+
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;counter-reset:step;}
+.step{
+  background:var(--card);border:1px solid var(--line);border-radius:4px;
+  padding:24px 22px;position:relative;
+}
+.step::before{
+  counter-increment:step;content:counter(step,decimal-leading-zero);
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:1.6rem;color:var(--moss);display:block;margin-bottom:8px;
+  font-variant-numeric:tabular-nums;
+}
+.step h3{font-size:1rem;letter-spacing:.08em;margin-bottom:8px;}
+.step p{font-size:.86rem;color:var(--ink-soft);}
+
+/* company */
+.company-table{width:100%;border-collapse:collapse;max-width:640px;}
+.company-table th,.company-table td{
+  text-align:left;padding:14px 8px;border-bottom:1px solid var(--line);
+  font-size:.92rem;vertical-align:top;
+}
+.company-table th{
+  width:9em;color:var(--moss);font-weight:600;letter-spacing:.14em;white-space:nowrap;
+}
+.placeholder{color:var(--ink-soft);}
+
+/* contact */
+.contact-box{
+  background:var(--pine);color:#F5F7F0;border-radius:6px;
+  padding:48px 32px;text-align:center;
+}
+.contact-box h2{color:inherit;}
+.contact-box p{max-width:34rem;margin:0 auto 24px;color:color-mix(in srgb,#F5F7F0 82%,var(--pine));}
+.tel{
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:.08em;
+  color:#fff;text-decoration:none;font-variant-numeric:tabular-nums;
+}
+.contact-note{font-size:.8rem;opacity:.8;margin-top:14px;}
+
+footer{
+  padding:28px 20px;text-align:center;font-size:.78rem;color:var(--ink-soft);
+  letter-spacing:.1em;border-top:1px solid var(--line);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="brand" href="#top"><span class="leaf" aria-hidden="true"></span>やしお造園</a>
+    <nav aria-label="メインメニュー">
+      <a href="#services">サービス</a>
+      <a href="#kodawari">こだわり</a>
+      <a href="#flow">施工の流れ</a>
+      <a href="#company">会社概要</a>
+      <a href="#contact">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="hero-copy">
+      <h1 class="serif">庭とともに、<br><em>暮らしを整える。</em></h1>
+    </div>
+    <div class="hero-side">
+      <p class="eyebrow">YASHIO ZOUEN</p>
+      <p>庭木の剪定ひとつにも、その庭の来歴と、住まう人の暮らしがあります。やしお造園は、一軒一軒の庭に合わせた確かな手仕事で、地域の庭を守り続けてきた造園店です。</p>
+      <a class="cta" href="#contact">無料見積りを依頼する</a>
+    </div>
+    <div class="hero-mark" aria-hidden="true">庭</div>
+  </div>
+
+  <section id="services">
+    <div class="inner">
+      <p class="eyebrow">SERVICES</p>
+      <h2>サービス</h2>
+      <p class="section-lead">お庭の日々のお手入れから、庭づくり・外構工事まで。小さなご依頼もお気軽にご相談ください。</p>
+      <div class="cards">
+        <div class="card">
+          <div class="leaf" aria-hidden="true"></div>
+          <h3>庭木の剪定・お手入れ</h3>
+          <p>松の手入れ、生垣の刈り込み、消毒・施肥まで。樹木の性質を見極め、翌年の枝ぶりまで考えて鋏を入れます。</p>
+        </div>
+        <div class="card">
+          <div class="leaf" aria-hidden="true"></div>
+          <h3>造園・作庭</h3>
+          <p>新築のお庭づくりや、既存のお庭のリフォーム。植栽・石組み・竹垣など、和洋を問わずご提案します。</p>
+        </div>
+        <div class="card">
+          <div class="leaf" aria-hidden="true"></div>
+          <h3>伐採・抜根</h3>
+          <p>大きくなりすぎた庭木や危険木の伐採、切り株の抜根、処分まで一貫して承ります。</p>
+        </div>
+        <div class="card">
+          <div class="leaf" aria-hidden="true"></div>
+          <h3>外構・エクステリア</h3>
+          <p>フェンス・アプローチ・駐車場土間など、お庭まわりの外構工事もあわせてご相談いただけます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="kodawari">
+    <div class="inner">
+      <p class="eyebrow">OUR CRAFT</p>
+      <h2>やしお造園のこだわり</h2>
+      <p class="section-lead">派手さよりも、十年後の庭の姿を。長くお付き合いいただくための、三つの約束です。</p>
+      <div class="kodawari">
+        <div>
+          <h3 class="serif"><span>一</span>庭を読む</h3>
+          <p>同じ樹種でも、日当たり・土・風通しで手の入れ方は変わります。作業の前にまず庭全体を見て、その庭にとって最善の手順を組み立てます。</p>
+        </div>
+        <div>
+          <h3 class="serif"><span>二</span>暮らしに合わせる</h3>
+          <p>「手入れの手間を減らしたい」「子どもが遊べる庭にしたい」。ご要望とご予算を伺い、押し付けではないご提案を心がけています。</p>
+        </div>
+        <div>
+          <h3 class="serif"><span>三</span>切って終わりにしない</h3>
+          <p>施工後の生育の様子まで責任を持って見守ります。季節ごとのお手入れのご相談も、いつでもお声がけください。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow">
+    <div class="inner">
+      <p class="eyebrow">FLOW</p>
+      <h2>施工の流れ</h2>
+      <p class="section-lead">お問い合わせからアフターフォローまで。現地調査・お見積りは無料です。</p>
+      <div class="flow">
+        <div class="step">
+          <h3>お問い合わせ</h3>
+          <p>お電話またはメールでご連絡ください。「庭木一本だけ」のご相談も歓迎です。</p>
+        </div>
+        <div class="step">
+          <h3>現地調査・お見積り</h3>
+          <p>実際にお庭を拝見し、作業内容と費用を明確にご提示します。調査・見積りは無料です。</p>
+        </div>
+        <div class="step">
+          <h3>施工</h3>
+          <p>ご近所への配慮、養生、清掃まで含めて丁寧に作業します。作業後はきれいに片付けてお引き渡しします。</p>
+        </div>
+        <div class="step">
+          <h3>アフターフォロー</h3>
+          <p>施工後の生育や気になる点があれば、いつでもご相談ください。定期のお手入れも承ります。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="company">
+    <div class="inner">
+      <p class="eyebrow">COMPANY</p>
+      <h2>会社概要</h2>
+      <table class="company-table">
+        <tr><th>屋号</th><td>やしお造園</td></tr>
+        <tr><th>代表</th><td class="placeholder">（代表者名を記載）</td></tr>
+        <tr><th>所在地</th><td class="placeholder">（住所を記載）</td></tr>
+        <tr><th>電話番号</th><td class="placeholder">（電話番号を記載)</td></tr>
+        <tr><th>営業時間</th><td class="placeholder">8:00〜18:00（要確認）</td></tr>
+        <tr><th>対応エリア</th><td class="placeholder">（対応地域を記載：例 八潮市・草加市・三郷市 ほか近隣）</td></tr>
+        <tr><th>事業内容</th><td>造園工事、庭木の剪定・管理、伐採・抜根、外構工事</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="inner">
+      <div class="contact-box">
+        <p class="eyebrow" style="justify-content:center;color:#CBDCA8;">CONTACT</p>
+        <h2 class="serif">お見積り・ご相談は無料です</h2>
+        <p>「まずは話だけ聞きたい」でも構いません。お庭のこと、なんでもお気軽にご相談ください。</p>
+        <a class="tel" href="tel:0000000000">000-0000-0000</a>
+        <p class="contact-note">受付時間 8:00〜18:00（電話番号・受付時間は仮のものです）</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>© やしお造園</footer>
+
+</body>
+</html>
