@@ -6,7 +6,6 @@
 
 ## スクリーンショット
 
-<!-- TODO: スクリーンショットを追加 -->
 | カテゴリ一覧(スマホ) | 記事詳細 + AI解説 | PC表示(全ジャンル横並び) |
 | --- | --- | --- |
 | ![カテゴリ一覧](docs/screenshots/menu.png) | ![記事詳細](docs/screenshots/detail.png) | ![PC表示](docs/screenshots/desktop.png) |

@@ -1,10 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 個人利用(1人専用)の簡易ルール。認証なしで読み書き可能。
-    // 本番の不特定多数向けサービスにするならFirebase Authenticationの導入を推奨。
+    // 個人利用(1人専用)前提の認証なし構成。
+    // 書き込みは既知の6カテゴリ+決まった3フィールドに限定し、それ以外は拒否する。
     match /newsItems/{category} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if category in ['ma', 'keiei', 'ai', 'kyodo', 'gunma', 'kyoyo']
+                   && request.resource.data.keys().hasOnly(['label', 'items', 'fetchedAt']);
     }
   }
 }
